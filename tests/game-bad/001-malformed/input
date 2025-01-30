@@ -1,0 +1,9 @@
+:play s y
+:play 3 y
+:play 4 y
+:play 4 1w3e
+:play 4 123
+:play 4 123456789
+:stop 1234
+:stop
+:quit

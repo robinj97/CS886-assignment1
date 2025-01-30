@@ -1,0 +1,17 @@
+-- [ Manifest ]
+--
+-- Testing Manifest
+--
+-- Copyright : COPYRIGHT
+-- License   : see ../LICENSE
+--
+--
+package testing
+
+depends = contrib, test
+
+executable = cs886-tests
+
+main = Main
+
+-- [ EOF ]

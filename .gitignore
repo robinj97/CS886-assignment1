@@ -1,0 +1,7 @@
+*.tar.gz
+*runtimeconfig.json
+build/
+_build/
+*.dll
+auto/
+*~

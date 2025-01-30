@@ -1,0 +1,9 @@
+:guess 1234
+:guess srds
+:play 4 1234
+:guess 1678
+:guess 1985
+:guess 1267
+:guess 1267
+:guess 1234
+:quit
