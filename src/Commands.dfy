@@ -10,6 +10,7 @@ module Commands {
   datatype CMD
     = Quit
     | Help
+    | Play
 
     function stripColon(s : string) : Maybe<string>
     {
@@ -35,6 +36,17 @@ module Commands {
         else Nothing
     }
 
+    function processPlay(cmd : string, args : seq<string>) : Maybe<CMD>
+    requires cmd == "play"
+    requires |args| == 2
+    requires |args[0]| > 3
+    requires |args[1]| > 3
+    {
+      if cmd == "play"
+        then Just(Play)
+        else Nothing
+    }
+
     function processHelp(cmd : string, args : seq<string>) : Maybe<CMD>
     {
       if cmd in ["help", "h", "?"]
@@ -45,8 +57,13 @@ module Commands {
 
     function process(cmd : string, args : seq<string>) : Maybe<CMD>
     {
-      whenNothing(processQuit(cmd,args),
-        processHelp(cmd,args))
+      whenNothing(
+        whenNothing(
+          processQuit(cmd,args),
+          processHelp(cmd,args)
+        ),
+        processPlay(cmd,args)
+  )
     }
 
     function fromString(s : string) : Maybe<CMD>

@@ -32,18 +32,29 @@ module CS886
       print prompt,  " ";
 
       var resp := ReadLine();
-
       match fromString(resp)
       {
-      case Nothing => continue;
+      case Nothing =>
+        continue;
 
       case Just(cmd) =>
         match cmd
         {
-          case x =>
-            break;
+          case Help => runHelp();
+          case Quit => break;
+          case Play => print Play;
         }
       }
     }
+  }
+
+
+  method runHelp()
+  {
+    WriteLine("Commands: ");
+    WriteLine(":quit         -- Exit programme");
+    WriteLine(":play [n] [s] -- Play a game with 'n' tries and a secret sequence 's'");
+    WriteLine(":guess [seq]  -- guess the secret");
+    WriteLine(":stop         -- end game");
   }
 }
