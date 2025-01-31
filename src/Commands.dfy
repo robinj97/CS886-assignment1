@@ -10,7 +10,7 @@ module Commands {
   datatype CMD
     = Quit
     | Help
-    | Play
+    | Play(turns:Maybe<nat>, sequence:Maybe<seq<nat>>)
 
     function stripColon(s : string) : Maybe<string>
     {
@@ -37,13 +37,12 @@ module Commands {
     }
 
     function processPlay(cmd : string, args : seq<string>) : Maybe<CMD>
-    requires cmd == "play"
-    requires |args| == 2
-    requires |args[0]| > 3
-    requires |args[1]| > 3
     {
       if cmd == "play"
-        then Just(Play)
+        then
+          var turns := stringToNat(args[0]);
+          var sequence := digitsFromString(args[1]);
+          Just(Play(turns, sequence))
         else Nothing
     }
 

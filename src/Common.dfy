@@ -248,6 +248,32 @@ module Common
           Just([c] + cs)
           ))
       }
+
+      function stringToNat(s: string): Maybe<nat>
+      {
+        if |s| == 0 then
+          Nothing
+        else
+          var digits := digitsFromString(s);
+          match digits {
+            case Nothing => Nothing
+            case Just(ds) =>
+              if |ds| == 0 then
+                Nothing
+              else
+                calcNat(ds, 0)
+          }
+      }
+
+
+      function calcNat(ds: seq<nat>, acc: nat): Maybe<nat>
+        decreases |ds|
+      {
+        if |ds| == 0 then
+          Just(acc)
+        else
+          calcNat(ds[1..], acc * 10 + ds[0])
+      }
     }
   }
 
