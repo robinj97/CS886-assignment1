@@ -92,6 +92,17 @@ module CS886
               }
             }
           }
+          case Stop => {
+             if !inGame {
+              WriteLine("Not playing a game.");
+            } else {
+              WriteLine("Abandoning game, resetting state.");
+              inGame := false;
+              turnsTaken := 0;
+              secret := [];
+              selectedTurns := 0;
+            }
+          }
         }
       }
     }

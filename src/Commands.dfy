@@ -12,6 +12,7 @@ module Commands {
     | Help
     | Play(turns:Maybe<nat>, sequence:Maybe<seq<nat>>)
     | Guess(Maybe<seq<nat>>)
+    | Stop
 
     function stripColon(s : string) : Maybe<string>
     {
@@ -58,6 +59,13 @@ module Commands {
         else Nothing
     }
 
+    function processStop(cmd : string, args : seq<string>) : Maybe<CMD>
+    {
+      if cmd == "stop"
+        then Just(Stop)
+        else Nothing
+    }
+
     function processHelp(cmd : string, args : seq<string>) : Maybe<CMD>
     {
       if cmd in ["help", "h", "?"]
@@ -70,13 +78,16 @@ module Commands {
     {
       whenNothing(
       whenNothing(
-        whenNothing(
-        processQuit(cmd, args),
-        processHelp(cmd, args)
-        ),
-        processPlay(cmd, args)
+      whenNothing(
+      whenNothing(
+      processQuit(cmd, args),
+      processHelp(cmd, args)
+      ),
+      processPlay(cmd, args)
       ),
       processGuess(cmd, args)
+      ),
+      processStop(cmd, args)
       )
     }
 
