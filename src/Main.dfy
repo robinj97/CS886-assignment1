@@ -54,16 +54,20 @@ module CS886
               break;
             }
           }
-          case Play(turns,sequence) => {
+          case Play(turns, sequence) => {
             if inGame {
               WriteLine("Cannot start a new game while in game.");
             } else {
-              //Maybe change this to a boolean which switches ingame to true
-              inGame := startGameProcess(turns, sequence, inGame);
-              if (inGame) {
-                WriteLine("Game on!");
-                secret := extractSequence(sequence);
-                selectedTurns := extractTurns(turns);
+              // Validate inputs before calling extract methods
+              if turns.Just? && sequence.Just? {
+                inGame := startGameProcess(turns, sequence, inGame);
+                if inGame {
+                  WriteLine("Game on!");
+                  secret := extractSequence(sequence);
+                  selectedTurns := extractTurns(turns);
+                }
+              } else {
+                WriteLine("Invalid command.");
               }
             }
           }
@@ -76,6 +80,15 @@ module CS886
               var finished := handleGuess(extractedGuess, secret);
               if (finished) {
                 inGame := false;
+              } else {
+                turnsTaken := turnsTaken + 1;
+                if (turnsTaken == selectedTurns) {
+                  WriteLine("No more turns left!");
+                  WriteLine("The secret was: ");
+                  printSequence(secret);
+                  WriteLine("\n");
+                  inGame := false;
+                }
               }
             }
           }
@@ -102,6 +115,9 @@ module CS886
       WriteLine("Invalid command.");
       return;
     }
+    assert turns.Just?;
+    assert sequence.Just?;
+
     var extractedTurns := extractTurns(turns);
     var extractedSequence := extractSequence(sequence);
     if (extractedTurns < 4) {
@@ -117,6 +133,7 @@ module CS886
       var duplicates := getDuplicateElements(extractedSequence);
       WriteLine("The secret contained a repeated character:");
       print duplicates;
+      print "\n";
       return;
     }
     return true;
@@ -166,54 +183,35 @@ module CS886
       WriteLine("Guess was the wrong length.");
       return false;
     }
+
     if guess == secret {
       WriteLine("Congratulations you guessed correctly!");
       return true;
     }
+    evaluateGuess(guess, secret);
     return false;
   }
-  /* method playGame(turns:nat, sequence:seq<nat>, inGame:bool)
-  {
-    var secret := sequence;
-    var guesses := [];
-    var turnsLeft := turns;
-    var inGame := true;
-    while (turnsLeft > 0)
-    {
-      var guess := ReadLine();
-      match fromString(guess)
-      {
-      case Nothing =>
-        continue;
 
-      case Just(cmd) =>
-        match cmd
-        {
-          case Guess(seq) => {
-            if (seq == secret) {
-              WriteLine("Congratulations you guessed correctly!");
-              inGame := false;
-              break;
-            } else {
-              var result := evaluateGuess(seq, secret);
-              turnsLeft := turnsLeft - 1;
-              guesses := guesses + [result];
-              if (turnsLeft == 0) {
-                WriteLine("You lose!");
-                inGame := false;
-                break;
-              }
-            }
-          }
-          case Stop => {
-            WriteLine("Game stopped.");
-            inGame := false;
-            break;
-          }
-        }
+  method evaluateGuess(guess: seq<nat>, secret: seq<nat>)
+  requires guess != []
+  requires |guess| == |secret|
+  {
+    var yay := 0;
+    var nae := 0;
+    for i := 0 to |guess| {
+      if guess[i] == secret[i] {
+        yay := yay + 1;
+      } else if guess[i] in secret {
+        nae := nae + 1;
       }
     }
-  } */
+    print guess;
+    print " ";
+    print yay;
+    print " yay ";
+    print nae;
+    print " nae\n";
+  }
 
 
   // Helpers
@@ -246,5 +244,17 @@ module CS886
   function CountElements<T>(sequence: seq<T>): nat
   {
     |sequence|
+  }
+
+  method printSequence(sequence: seq<nat>)
+  {
+    if sequence == [] {
+      print "[]";
+    }
+    if |sequence| > 0 {
+      for i := 0 to |sequence| {
+        print sequence[i];
+      }
+    }
   }
 }
