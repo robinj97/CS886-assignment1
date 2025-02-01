@@ -27,6 +27,9 @@ module CS886
     decreases *
   {
     var inGame := false;
+    var turnsTaken := 0;
+    var secret := [];
+    var selectedTurns := 0;
     while true
       decreases *
     {
@@ -57,6 +60,11 @@ module CS886
             } else {
               //Maybe change this to a boolean which switches ingame to true
               inGame := startGameProcess(turns, sequence, inGame);
+              if (inGame) {
+                WriteLine("Game on!");
+                secret := extractSequence(sequence);
+                selectedTurns := extractTurns(turns);
+              }
             }
           }
           case Guess(guess) => {
@@ -64,6 +72,11 @@ module CS886
               WriteLine("Not in a game.");
             } else {
               WriteLine("Guessing");
+              var extractedGuess := extractSequence(guess);
+              var finished := handleGuess(extractedGuess, secret);
+              if (finished) {
+                inGame := false;
+              }
             }
           }
         }
@@ -138,6 +151,27 @@ module CS886
     }
   }
 
+  method handleGuess(guess: seq<nat>, secret: seq<nat>)
+  returns (finished: bool)
+  {
+    if guess == [] {
+      WriteLine("Guess was empty.");
+      return false;
+    }
+    if secret == [] {
+      WriteLine("Secret was empty.");
+      return false;
+    }
+    if |guess| != |secret| {
+      WriteLine("Guess was the wrong length.");
+      return false;
+    }
+    if guess == secret {
+      WriteLine("Congratulations you guessed correctly!");
+      return true;
+    }
+    return false;
+  }
   /* method playGame(turns:nat, sequence:seq<nat>, inGame:bool)
   {
     var secret := sequence;
