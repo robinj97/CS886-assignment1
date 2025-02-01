@@ -55,7 +55,15 @@ module CS886
             if inGame {
               WriteLine("Cannot start a new game while in game.");
             } else {
-              startGameProcess(turns,sequence,false);
+              //Maybe change this to a boolean which switches ingame to true
+              inGame := startGameProcess(turns, sequence, inGame);
+            }
+          }
+          case Guess(guess) => {
+            if !inGame {
+              WriteLine("Not in a game.");
+            } else {
+              WriteLine("Guessing");
             }
           }
         }
@@ -73,8 +81,10 @@ module CS886
   }
 
   method startGameProcess(turns:Maybe<nat>, sequence: Maybe<seq<nat>>,inGame: bool)
+  returns (started: bool)
   requires !inGame
   {
+    started := inGame;
     if isNothing(turns) || isNothing(sequence) {
       WriteLine("Invalid command.");
       return;
@@ -96,6 +106,7 @@ module CS886
       print duplicates;
       return;
     }
+    return true;
 
   }
 
@@ -127,7 +138,7 @@ module CS886
     }
   }
 
- /*  method playGame(turns:nat, sequence:seq<nat>)
+  /* method playGame(turns:nat, sequence:seq<nat>, inGame:bool)
   {
     var secret := sequence;
     var guesses := [];
@@ -146,7 +157,7 @@ module CS886
         {
           case Guess(seq) => {
             if (seq == secret) {
-              WriteLine("You win!");
+              WriteLine("Congratulations you guessed correctly!");
               inGame := false;
               break;
             } else {

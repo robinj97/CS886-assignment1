@@ -11,6 +11,7 @@ module Commands {
     = Quit
     | Help
     | Play(turns:Maybe<nat>, sequence:Maybe<seq<nat>>)
+    | Guess(Maybe<seq<nat>>)
 
     function stripColon(s : string) : Maybe<string>
     {
@@ -46,6 +47,17 @@ module Commands {
         else Nothing
     }
 
+    function processGuess(cmd :string, args : seq<string>) : Maybe<CMD>
+    requires args != []
+    requires cmd == "guess"
+    {
+      if cmd == "guess"
+        then
+          var guess := digitsFromString(args[0]);
+          Just(Guess(guess))
+        else Nothing
+    }
+
     function processHelp(cmd : string, args : seq<string>) : Maybe<CMD>
     {
       if cmd in ["help", "h", "?"]
@@ -57,12 +69,15 @@ module Commands {
     function process(cmd : string, args : seq<string>) : Maybe<CMD>
     {
       whenNothing(
+      whenNothing(
         whenNothing(
-          processQuit(cmd,args),
-          processHelp(cmd,args)
+        processQuit(cmd, args),
+        processHelp(cmd, args)
         ),
-        processPlay(cmd,args)
-  )
+        processPlay(cmd, args)
+      ),
+      processGuess(cmd, args)
+      )
     }
 
     function fromString(s : string) : Maybe<CMD>
