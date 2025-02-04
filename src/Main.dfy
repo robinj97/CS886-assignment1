@@ -47,18 +47,17 @@ module CS886
           case Help => runHelp();
           case Quit => {
             if !inGame {
-              WriteLine("Exiting game.");
+              WriteLine("Exiting game");
               break;
             } else {
-              WriteLine("Abaooning game, goodbye.");
+              WriteLine("Abandoning game, goodbye.");
               break;
             }
           }
           case Play(turns, sequence) => {
             if inGame {
-              WriteLine("Cannot start a new game while in game.");
+              WriteLine("Already in a game.");
             } else {
-              // Validate inputs before calling extract methods
               if turns.Just? && sequence.Just? {
                 inGame := startGameProcess(turns, sequence, inGame);
                 if inGame {
@@ -72,10 +71,12 @@ module CS886
             }
           }
           case Guess(guess) => {
-            if !inGame {
+            if isNothing(guess) {
+              WriteLine("Invalid command.");
+            } else {
+              if !inGame {
               WriteLine("Not in a game.");
             } else {
-              WriteLine("Guessing");
               var extractedGuess := extractSequence(guess);
               var finished := handleGuess(extractedGuess, secret);
               if (finished) {
@@ -91,9 +92,11 @@ module CS886
                 }
               }
             }
+            }
           }
-          case Stop => {
-             if !inGame {
+          case Stop(args) => {
+            if args == [] {
+              if !inGame {
               WriteLine("Not playing a game.");
             } else {
               WriteLine("Abandoning game, resetting state.");
@@ -101,6 +104,10 @@ module CS886
               turnsTaken := 0;
               secret := [];
               selectedTurns := 0;
+            }
+            }
+            else {
+              WriteLine("Invalid command.");
             }
           }
         }
@@ -110,9 +117,12 @@ module CS886
 
   method runHelp()
   {
-    WriteLine("Commands: ");
+    WriteLine("Yays & Naes");
+    print "\n";
+    WriteLine("Commands:");
+    print "\n";
     WriteLine(":quit         -- Exit programme");
-    WriteLine(":play [n] [s] -- Play a game with 'n' tries and a secret sequence 's'");
+    WriteLine(":play [n] [s] -- Play a game with `n` tries and a secret sequence `s`");
     WriteLine(":guess [seq]  -- guess the secret");
     WriteLine(":stop         -- end game");
   }

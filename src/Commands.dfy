@@ -12,7 +12,7 @@ module Commands {
     | Help
     | Play(turns:Maybe<nat>, sequence:Maybe<seq<nat>>)
     | Guess(Maybe<seq<nat>>)
-    | Stop
+    | Stop(args:seq<string>)
 
     function stripColon(s : string) : Maybe<string>
     {
@@ -62,7 +62,7 @@ module Commands {
     function processStop(cmd : string, args : seq<string>) : Maybe<CMD>
     {
       if cmd == "stop"
-        then Just(Stop)
+        then Just(Stop(args))
         else Nothing
     }
 
