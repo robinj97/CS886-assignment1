@@ -1,0 +1,10 @@
+Running Test
+> Yays & Naes
+
+Commands:
+
+:quit         -- Exit programme
+:play [n] [s] -- Play a game with `n` tries and a secret sequence `s`
+:guess [seq]  -- guess the secret
+:stop         -- end game
+> Exiting game

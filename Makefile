@@ -101,6 +101,7 @@ cs886-test-run-re:
 	${MAKE} -C tests test-re \
 			 IDRIS2=$(IDRIS2) \
 			 PROG_BIN=$(TARGET) \
+			 UPDATE='' \
 			 ONLY=$(ONLY)
 
 ## update the test suite's expected answers with the output of test runs.
