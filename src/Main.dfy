@@ -126,10 +126,11 @@ module CS886
     WriteLine(":guess [seq]  -- guess the secret");
     WriteLine(":stop         -- end game");
   }
-
-  method startGameProcess(turns:Maybe<nat>, sequence: Maybe<seq<nat>>,inGame: bool)
+  method startGameProcess(turns: Maybe<nat>, sequence: Maybe<seq<nat>>, inGame: bool)
   returns (started: bool)
   requires !inGame
+  requires turns.Just?
+  requires sequence.Just?
   {
     started := inGame;
     if isNothing(turns) || isNothing(sequence) {
@@ -243,18 +244,21 @@ module CS886
     case Just(_) => false
     }
   }
-  //@TODO: Need to add precondition that sequence is Just.
+
   method extractSequence(m : Maybe<seq<nat>>)
   returns (ret:seq<nat>)
+  requires m.Just?
   {
     match m {
       case Just(value) => ret := value;
       case Nothing => ret := [];
     }
   }
-  //TODO: Need to add precondition that turns is Just.
+
   method extractTurns(m : Maybe<nat>)
   returns (ret:nat)
+  requires m.Just?
+  ensures ret > -1
   {
     match m {
       case Just(value) => ret := value;
