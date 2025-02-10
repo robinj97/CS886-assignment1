@@ -2,9 +2,7 @@ include "Common.dfy"
 include "Commands.dfy"
 include "ConsoleIO.dfy"
 
-module CS886
-{
-
+module CS886 {
   import opened Common.IO
   import opened Common.Data
   import opened Common.Data.String
@@ -14,26 +12,24 @@ module CS886
   import opened Commands
   import opened ConsoleIO
 
-
   method {:main} Main()
     decreases *
   {
-
     REPL(">");
   }
-
 
   method REPL(prompt : string)
     decreases *
   {
     var inGame := false;
     var turnsTaken := 0;
-    var secret := [];
+    var secret : seq<nat> := [];
     var selectedTurns := 0;
+    // Instead of two separate invariants, we use a single disjunction.
     while true
       decreases *
     {
-      print prompt,  " ";
+      print prompt, " ";
 
       var resp := ReadLine();
       match fromString(resp)
@@ -44,8 +40,10 @@ module CS886
       case Just(cmd) =>
         match cmd
         {
-          case Help => runHelp();
-          case Quit => {
+          case Help =>
+            runHelp();
+
+          case Quit =>
             if !inGame {
               WriteLine("Exiting game");
               break;
@@ -53,70 +51,78 @@ module CS886
               WriteLine("Abandoning game, goodbye.");
               break;
             }
-          }
-          case Play(turns, sequence) => {
+
+          case Play(turns, sequence) =>
             if inGame {
               WriteLine("Already in a game.");
             } else {
               if turns.Just? && sequence.Just? {
-                inGame := startGameProcess(turns, sequence, inGame);
-                if inGame {
+                var started := startGameProcess(turns, sequence, inGame);
+                if started {
+                  inGame := true;
                   WriteLine("Game on!");
                   secret := extractSequence(sequence);
                   selectedTurns := extractTurns(turns);
+                  // turnsTaken remains 0, so the invariant holds.
                 }
               } else {
                 WriteLine("Invalid command.");
               }
             }
-          }
-          case Guess(guess) => {
+
+          case Guess(guess) =>
             if isNothing(guess) {
               WriteLine("Invalid command.");
-            } else {
-              if !inGame {
+            } else if !inGame {
               WriteLine("Not in a game.");
             } else {
               var extractedGuess := extractSequence(guess);
-              var finished := handleGuess(extractedGuess, secret);
-              if (finished) {
-                inGame := false;
+              if extractedGuess == [] || |extractedGuess| != |secret| {
+                WriteLine("Invalid guess length.");
               } else {
-                turnsTaken := turnsTaken + 1;
-                if (turnsTaken == selectedTurns) {
+                var finished := handleGuess(extractedGuess, secret);
+                if finished {
+                  // correct guess: reset state
+                  inGame := false;
+                  turnsTaken := 0;
+                  secret := [];
+                  selectedTurns := 0;
+                } else if turnsTaken + 1 < selectedTurns {
+                  turnsTaken := turnsTaken + 1;
+                } else {
+                  // This was the last turn: end game
                   WriteLine("No more turns left!");
                   WriteLine("The secret was: ");
                   printSequence(secret);
                   WriteLine("\n");
                   inGame := false;
+                  turnsTaken := 0;
+                  secret := [];
+                  selectedTurns := 0;
                 }
               }
             }
-            }
-          }
-          case Stop(args) => {
+
+          case Stop(args) =>
             if args == [] {
               if !inGame {
-              WriteLine("Not playing a game.");
+                WriteLine("Not playing a game.");
+              } else {
+                WriteLine("Abandoning game, resetting state.");
+                inGame := false;
+                turnsTaken := 0;
+                secret := [];
+                selectedTurns := 0;
+              }
             } else {
-              WriteLine("Abandoning game, resetting state.");
-              inGame := false;
-              turnsTaken := 0;
-              secret := [];
-              selectedTurns := 0;
-            }
-            }
-            else {
               WriteLine("Invalid command.");
             }
-          }
         }
       }
     }
   }
 
-  method runHelp()
-  {
+  method runHelp() {
     WriteLine("Yays & Naes");
     print "\n";
     WriteLine("Commands:");
@@ -126,81 +132,86 @@ module CS886
     WriteLine(":guess [seq]  -- guess the secret");
     WriteLine(":stop         -- end game");
   }
+
   method startGameProcess(turns: Maybe<nat>, sequence: Maybe<seq<nat>>, inGame: bool)
-  returns (started: bool)
-  requires !inGame
-  requires turns.Just?
-  requires sequence.Just?
+    returns (started: bool)
+    requires !inGame
+    requires turns.Just?
+    requires sequence.Just?
   {
-    started := inGame;
     if isNothing(turns) || isNothing(sequence) {
       WriteLine("Invalid command.");
-      return;
+      return false;
     }
     assert turns.Just?;
     assert sequence.Just?;
 
     var extractedTurns := extractTurns(turns);
     var extractedSequence := extractSequence(sequence);
-    if (extractedTurns < 4) {
+    if extractedTurns < 4 {
       WriteLine("There should be at least 4 turns.");
-      return;
+      return false;
     }
-    if (CountElements(extractedSequence) < 4) {
+    if CountElements(extractedSequence) < 4 {
       WriteLine("The secret is too short.");
-      return;
+      return false;
     }
-    var areElementsUnique := areAllElementsUnique(extractedSequence);
-    if (!areElementsUnique) {
+    var areUnique := areAllElementsUnique(extractedSequence);
+    if !areUnique {
       var duplicates := getDuplicateElements(extractedSequence);
       WriteLine("The secret contained a repeated character:");
       print duplicates;
       print "\n";
-      return;
+      return false;
     }
     return true;
-
   }
 
-  // Return true if all elements are unique
+  // Return true if all elements are unique.
   method areAllElementsUnique(sequence: seq<nat>) returns (unique: bool)
-  requires sequence != []
+    requires sequence != []
+    ensures unique <==> (forall i, j :: 0 <= i < j < |sequence| ==> sequence[i] != sequence[j])
   {
     unique := true;
-    for i := 0 to |sequence| - 1 {
+    var i := 0;
+    while i < |sequence|
+      decreases |sequence| - i
+      invariant 0 <= i <= |sequence|
+      invariant (unique ==> (forall k, l :: 0 <= k < l < i ==> sequence[k] != sequence[l]))
+      invariant (!unique ==> (i > 0 && exists k, l :: 0 <= k < l < i && sequence[k] == sequence[l]))
+    {
       if sequence[i] in sequence[..i] {
         unique := false;
-        break;
       }
+      i := i + 1;
     }
   }
 
-  // Return a sequence of duplicate elements
+  // Return a sequence of duplicate elements.
   method getDuplicateElements(sequence: seq<nat>) returns (duplicates: seq<nat>)
-  requires sequence != []
+    requires sequence != []
   {
     duplicates := [];
-    for i := 0 to |sequence| - 1 {
-      if !(sequence[i] in duplicates) {
-        // Check if current element appears later in the sequence
-        if sequence[i] in sequence[i+1..] {
-          duplicates := duplicates + [sequence[i]];
-        }
+    var i := 0;
+    while i < |sequence|
+      decreases |sequence| - i
+      invariant 0 <= i <= |sequence|
+    {
+      if (!(sequence[i] in duplicates) && i < |sequence| - 1 && sequence[i] in sequence[i+1..]) {
+        duplicates := duplicates + [sequence[i]];
       }
+      i := i + 1;
     }
   }
 
   method handleGuess(guess: seq<nat>, secret: seq<nat>)
-  returns (finished: bool)
+    returns (finished: bool)
+    requires guess != []
+    requires |guess| > 0
+    requires |guess| == |secret|
+    ensures finished ==> (guess == secret)
+    ensures !finished ==> (guess != secret)
   {
-    if guess == [] {
-      WriteLine("Guess was empty.");
-      return false;
-    }
-    if secret == [] {
-      WriteLine("Secret was empty.");
-      return false;
-    }
     if |guess| != |secret| {
       WriteLine("Guess was the wrong length.");
       return false;
@@ -210,22 +221,30 @@ module CS886
       WriteLine("Congratulations you guessed correctly!");
       return true;
     }
-    evaluateGuess(guess, secret);
+    var yae, nae := evaluateGuess(guess, secret);
     return false;
   }
 
   method evaluateGuess(guess: seq<nat>, secret: seq<nat>)
-  requires guess != []
-  requires |guess| == |secret|
+    returns (yay: nat, nae: nat)
+    requires guess != []
+    requires |guess| == |secret|
+    ensures yay + nae <= |guess|
   {
-    var yay := 0;
-    var nae := 0;
-    for i := 0 to |guess| {
+    yay := 0;
+    nae := 0;
+    var i := 0;
+    while i < |guess|
+      decreases |guess| - i
+      invariant 0 <= i <= |guess|
+      invariant yay + nae <= i
+    {
       if guess[i] == secret[i] {
         yay := yay + 1;
       } else if guess[i] in secret {
         nae := nae + 1;
       }
+      i := i + 1;
     }
     print guess;
     print " ";
@@ -235,51 +254,47 @@ module CS886
     print " nae\n";
   }
 
-
   // Helpers
 
   predicate isNothing<T>(m: Maybe<T>) {
-  match m {
-    case Nothing => true
-    case Just(_) => false
+    match m {
+      case Nothing => true
+      case Just(_) => false
     }
   }
 
-  method extractSequence(m : Maybe<seq<nat>>)
-  returns (ret:seq<nat>)
-  requires m.Just?
+  function extractSequence(m: Maybe<seq<nat>>): seq<nat>
+    requires m.Just?
   {
     match m {
-      case Just(value) => ret := value;
-      case Nothing => ret := [];
+      case Just(value) => value
+      case Nothing => []
     }
   }
 
-  method extractTurns(m : Maybe<nat>)
-  returns (ret:nat)
-  requires m.Just?
-  ensures ret > -1
+  function extractTurns(m: Maybe<nat>): nat
+    requires m.Just?
   {
     match m {
-      case Just(value) => ret := value;
-      case Nothing => ret := 0;
+      case Just(value) => value
+      case Nothing => 0
     }
   }
 
-  function CountElements<T>(sequence: seq<T>): nat
-  {
+  function CountElements<T>(sequence: seq<T>): nat {
     |sequence|
   }
 
   method printSequence(sequence: seq<nat>)
+    requires |sequence| > 0
   {
-    if sequence == [] {
-      print "[]";
-    }
-    if |sequence| > 0 {
-      for i := 0 to |sequence| {
-        print sequence[i];
-      }
+    var i := 0;
+    while i < |sequence|
+      decreases |sequence| - i
+      invariant 0 <= i <= |sequence|
+    {
+      print sequence[i];
+      i := i + 1;
     }
   }
 }
