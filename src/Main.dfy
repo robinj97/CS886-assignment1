@@ -204,10 +204,8 @@ module CS886 {
   method handleGuess(guess: seq<nat>, secret: seq<nat>)
     returns (finished: bool)
     requires guess != []
-    requires |guess| > 0
     requires |guess| == |secret|
-    ensures finished ==> (guess == secret)
-    ensures !finished ==> (guess != secret)
+    ensures finished == (guess == secret)
   {
     if |guess| != |secret| {
       WriteLine("Guess was the wrong length.");
