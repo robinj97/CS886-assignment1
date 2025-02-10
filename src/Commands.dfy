@@ -39,8 +39,9 @@ module Commands {
     }
 
     function processPlay(cmd : string, args : seq<string>) : Maybe<CMD>
+    requires args != []
     {
-      if cmd == "play"
+      if cmd == "play" && |args| == 2
         then
           var turns := stringToNat(args[0]);
           var sequence := digitsFromString(args[1]);
