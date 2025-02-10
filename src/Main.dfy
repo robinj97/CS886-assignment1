@@ -25,7 +25,6 @@ module CS886 {
     var turnsTaken := 0;
     var secret : seq<nat> := [];
     var selectedTurns := 0;
-    // Instead of two separate invariants, we use a single disjunction.
     while true
       decreases *
     {
@@ -78,11 +77,10 @@ module CS886 {
             } else {
               var extractedGuess := extractSequence(guess);
               if extractedGuess == [] || |extractedGuess| != |secret| {
-                WriteLine("Invalid guess length.");
+                WriteLine("Guess was the wrong length.");
               } else {
                 var finished := handleGuess(extractedGuess, secret);
                 if finished {
-                  // correct guess: reset state
                   inGame := false;
                   turnsTaken := 0;
                   secret := [];
@@ -90,7 +88,6 @@ module CS886 {
                 } else if turnsTaken + 1 < selectedTurns {
                   turnsTaken := turnsTaken + 1;
                 } else {
-                  // This was the last turn: end game
                   WriteLine("No more turns left!");
                   WriteLine("The secret was: ");
                   printSequence(secret);
