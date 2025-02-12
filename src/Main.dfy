@@ -27,6 +27,10 @@ module CS886 {
     var selectedTurns := 0;
     while true
       decreases *
+      invariant !inGame ==> (secret == [] && selectedTurns == 0 && turnsTaken == 0)
+      //invariant inGame ==> (|secret| > 4 && selectedTurns >= 4)
+      //invariant inGame ==> (turnsTaken < selectedTurns)
+      invariant turnsTaken >= 0
     {
       print prompt, " ";
 
@@ -149,7 +153,7 @@ module CS886 {
       WriteLine("There should be at least 4 turns.");
       return false;
     }
-    if CountElements(extractedSequence) < 4 {
+    if countElements(extractedSequence) < 4 {
       WriteLine("The secret is too short.");
       return false;
     }
@@ -187,6 +191,8 @@ module CS886 {
   // Return a sequence of duplicate elements.
   method getDuplicateElements(sequence: seq<nat>) returns (duplicates: seq<nat>)
     requires sequence != []
+    //ensures |duplicates| <= |sequence|
+    //ensures forall x :: x in duplicates ==> x in sequence
   {
     duplicates := [];
     var i := 0;
@@ -205,7 +211,8 @@ module CS886 {
     returns (finished: bool)
     requires guess != []
     requires |guess| == |secret|
-    ensures finished == (guess == secret)
+    ensures finished ==> (guess == secret)
+    ensures !finished ==> (guess != secret)
   {
     if |guess| != |secret| {
       WriteLine("Guess was the wrong length.");
@@ -225,6 +232,9 @@ module CS886 {
     requires guess != []
     requires |guess| == |secret|
     ensures yay + nae <= |guess|
+    ensures yay <= |guess|
+    ensures nae <= |guess|
+    //ensures forall i :: 0 <= i < |guess| ==> (guess[i] == secret[i] ==> yay > 0)
   {
     yay := 0;
     nae := 0;
@@ -276,7 +286,7 @@ module CS886 {
     }
   }
 
-  function CountElements<T>(sequence: seq<T>): nat {
+  function countElements<T>(sequence: seq<T>): nat {
     |sequence|
   }
 
