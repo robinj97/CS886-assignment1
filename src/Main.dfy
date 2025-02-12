@@ -38,7 +38,7 @@ module CS886 {
       match fromString(resp)
       {
       case Nothing =>
-        continue;
+        WriteLine("Invalid command.");
 
       case Just(cmd) =>
         match cmd
