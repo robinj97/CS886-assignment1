@@ -262,6 +262,7 @@ module Common
           ))
       }
       //We need to ensure that the string only contains digits so that we can return digits.
+      //@TODO: Need to simplify this method
       function stringToNat(s: string): Maybe<nat>
       ensures stringToNat(s).Just? ==> (forall i | 0 <= i < |s| :: '0' <= s[i] <= '9')
       {

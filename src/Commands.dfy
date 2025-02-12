@@ -90,9 +90,9 @@ module Commands {
         processPlay(cmd, args)
       else if cmd == "guess" && args != [] then
         processGuess(cmd, args)
-      else if cmd == "stop" then
+      else if cmd == "stop" && args == [] then
         processStop(cmd, args)
-      else if cmd == "quit" || cmd in ["help", "h", "?"] then
+      else if (cmd == "quit" || cmd in ["help", "h", "?"]) && args == [] then
         whenNothing(processQuit(cmd, args), processHelp(cmd, args))
       else
         Nothing
