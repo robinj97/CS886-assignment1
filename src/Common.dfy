@@ -45,6 +45,8 @@ module Common
         }
       }
         function maybe<T,A>(m : Maybe<T>, def : A, k : T -> A) : A
+        ensures m.Just? ==> maybe(m, def, k) == k(m.t)
+        ensures m.Nothing? ==> maybe(m, def, k) == def
         {
           match m {
             case Nothing => def
@@ -53,6 +55,8 @@ module Common
         }
 
         function whenNothing<A> (m : Maybe<A>, def : Maybe<A>) : Maybe<A>
+        ensures m.Just? ==> whenNothing(m, def) == m
+        ensures m.Nothing? ==> whenNothing(m, def) == def
         {
           maybe(m,def,(a : A) => Just(a))
         }
@@ -138,21 +142,29 @@ module Common
 
       import opened Maybe
 
+      //Post condition ensures the implementation
       function head<T>(xs : seq<T>) : Maybe<T>
+        ensures xs == [] ==> head(xs).Nothing?
+        ensures xs != [] ==> head(xs).Just? && head(xs).t == xs[0]
       {
         if xs == []
           then Nothing
           else Just(xs[0])
       }
 
+      //Ensure correct behavior from implementation
       function tail<T>(xs : seq<T>) : Maybe<(seq<T>)>
+        ensures xs == [] ==> tail(xs).Nothing?
+        ensures xs != [] ==> tail(xs).Just? && tail(xs).t == xs[1..]
       {
         if xs == []
           then Nothing
           else Just(xs[1..])
       }
-
+      //Ensures the result of the code is correct
       function splitCons<T>(xs : seq<T>) : Maybe<(T,seq<T>)>
+        ensures xs == [] ==> splitCons(xs).Nothing?
+        ensures xs != [] ==> splitCons(xs).Just? && splitCons(xs).t.0 == xs[0] && splitCons(xs).t.1 == xs[1..]
       {
         if xs == []
           then Nothing
@@ -218,8 +230,9 @@ module Common
     module Nat
     {
       import opened Maybe
-
+      // If and only if the character is a digit, return the digit.
       function digitFromChar(c : char) : Maybe<nat>
+      ensures digitFromChar(c).Just? <==> '0' <= c <= '9'
       {
         match c
         {
@@ -236,7 +249,7 @@ module Common
         case x => Nothing
         }
       }
-
+      //We dont need to validate this since we validate the root method this uses
       function digitsFromString(s : string) : Maybe<seq<nat>>
       {
         if s == []
@@ -248,8 +261,9 @@ module Common
           Just([c] + cs)
           ))
       }
-
+      //We need to ensure that the string only contains digits so that we can return digits.
       function stringToNat(s: string): Maybe<nat>
+      ensures stringToNat(s).Just? ==> (forall i | 0 <= i < |s| :: '0' <= s[i] <= '9')
       {
         if |s| == 0 then
           Nothing
@@ -265,8 +279,11 @@ module Common
           }
       }
 
-
       function calcNat(ds: seq<nat>, acc: nat): Maybe<nat>
+        requires forall i :: 0 <= i < |ds| ==> ds[i] <= 9  // each element is a digit
+        requires acc <= ((0x7fffffffffffffff - 9) / 10)     // prevent overflow
+        ensures var result := calcNat(ds, acc);
+            result.Just? ==> result.t >= acc        // result is at least acc
         decreases |ds|
       {
         if |ds| == 0 then
