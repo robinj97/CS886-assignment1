@@ -166,45 +166,6 @@ module CS886 {
     return true;
   }
 
-  // Return true if all elements are unique.
-  method areAllElementsUnique(sequence: seq<nat>) returns (unique: bool)
-    requires sequence != []
-    ensures unique <==> (forall i, j :: 0 <= i < j < |sequence| ==> sequence[i] != sequence[j])
-  {
-    unique := true;
-    var i := 0;
-    while i < |sequence|
-      decreases |sequence| - i
-      invariant 0 <= i <= |sequence|
-      invariant (unique ==> (forall k, l :: 0 <= k < l < i ==> sequence[k] != sequence[l]))
-      invariant (!unique ==> (i > 0 && exists k, l :: 0 <= k < l < i && sequence[k] == sequence[l]))
-    {
-      if sequence[i] in sequence[..i] {
-        unique := false;
-      }
-      i := i + 1;
-    }
-  }
-
-  // Return a sequence of duplicate elements.
-  method getDuplicateElements(sequence: seq<nat>) returns (duplicates: seq<nat>)
-    requires sequence != []
-    //ensures |duplicates| <= |sequence|
-    //ensures forall x :: x in duplicates ==> x in sequence
-  {
-    duplicates := [];
-    var i := 0;
-    while i < |sequence|
-      decreases |sequence| - i
-      invariant 0 <= i <= |sequence|
-    {
-      if (!(sequence[i] in duplicates) && i < |sequence| - 1 && sequence[i] in sequence[i+1..]) {
-        duplicates := duplicates + [sequence[i]];
-      }
-      i := i + 1;
-    }
-  }
-
   method handleGuess(guess: seq<nat>, secret: seq<nat>)
     returns (finished: bool)
     requires guess != []
@@ -297,6 +258,43 @@ module CS886 {
       invariant 0 <= i <= |sequence|
     {
       print sequence[i];
+      i := i + 1;
+    }
+  }
+   // Return true if all elements are unique.
+  method areAllElementsUnique(sequence: seq<nat>) returns (unique: bool)
+    requires sequence != []
+    ensures unique <==> (forall i, j :: 0 <= i < j < |sequence| ==> sequence[i] != sequence[j])
+  {
+    unique := true;
+    var i := 0;
+    while i < |sequence|
+      decreases |sequence| - i
+      invariant 0 <= i <= |sequence|
+      invariant (unique ==> (forall k, l :: 0 <= k < l < i ==> sequence[k] != sequence[l]))
+      invariant (!unique ==> (i > 0 && exists k, l :: 0 <= k < l < i && sequence[k] == sequence[l]))
+    {
+      if sequence[i] in sequence[..i] {
+        unique := false;
+      }
+      i := i + 1;
+    }
+  }
+   // Return a sequence of duplicate elements.
+  method getDuplicateElements(sequence: seq<nat>) returns (duplicates: seq<nat>)
+    requires sequence != []
+    //ensures |duplicates| <= |sequence|
+    //ensures forall x :: x in duplicates ==> x in sequence
+  {
+    duplicates := [];
+    var i := 0;
+    while i < |sequence|
+      decreases |sequence| - i
+      invariant 0 <= i <= |sequence|
+    {
+      if (!(sequence[i] in duplicates) && i < |sequence| - 1 && sequence[i] in sequence[i+1..]) {
+        duplicates := duplicates + [sequence[i]];
+      }
       i := i + 1;
     }
   }
