@@ -45,7 +45,6 @@ module CS886 {
         {
           case Help =>
             runHelp();
-
           case Quit =>
             if !inGame {
               WriteLine("Exiting game");
@@ -66,7 +65,6 @@ module CS886 {
                   WriteLine("Game on!");
                   secret := extractSequence(sequence);
                   selectedTurns := extractTurns(turns);
-                  // turnsTaken remains 0, so the invariant holds.
                 }
               } else {
                 WriteLine("Invalid command.");
