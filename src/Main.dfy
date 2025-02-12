@@ -151,12 +151,14 @@ module CS886 {
       WriteLine("There should be at least 4 turns.");
       return false;
     }
-    if countElements(extractedSequence) < 4 {
+    if |extractedSequence| < 4 {
       WriteLine("The secret is too short.");
       return false;
     }
+    assert |extractedSequence| >= 4;
     var areUnique := areAllElementsUnique(extractedSequence);
     if !areUnique {
+      //@TODO: Only return first element from the list?
       var duplicates := getDuplicateElements(extractedSequence);
       WriteLine("The secret contained a repeated character:");
       print duplicates;
@@ -195,6 +197,7 @@ module CS886 {
     ensures nae <= |guess|
     //ensures forall i :: 0 <= i < |guess| ==> (guess[i] == secret[i] ==> yay > 0)
   {
+    assert |guess| == |secret|;
     yay := 0;
     nae := 0;
     var i := 0;
@@ -216,6 +219,8 @@ module CS886 {
     print " yay ";
     print nae;
     print " nae\n";
+
+    assert yay + nae <= |guess|;
   }
 
   // ---------- Helpers -----------
@@ -245,10 +250,6 @@ module CS886 {
     }
   }
 
-  function countElements<T>(sequence: seq<T>): nat {
-    |sequence|
-  }
-
   method printSequence(sequence: seq<nat>)
     requires |sequence| > 0
   {
@@ -260,6 +261,8 @@ module CS886 {
       print sequence[i];
       i := i + 1;
     }
+    //Make sure we printed the whole list
+    assert i == |sequence|;
   }
    // Return true if all elements are unique.
   method areAllElementsUnique(sequence: seq<nat>) returns (unique: bool)
@@ -291,11 +294,13 @@ module CS886 {
     while i < |sequence|
       decreases |sequence| - i
       invariant 0 <= i <= |sequence|
+      invariant forall x :: x in duplicates ==> x in sequence
     {
       if (!(sequence[i] in duplicates) && i < |sequence| - 1 && sequence[i] in sequence[i+1..]) {
         duplicates := duplicates + [sequence[i]];
       }
       i := i + 1;
     }
+    assert forall x :: x in duplicates ==> x in sequence;
   }
 }
