@@ -218,7 +218,7 @@ module CS886 {
     print " nae\n";
   }
 
-  // Helpers
+  // ---------- Helpers -----------
 
   predicate isNothing<T>(m: Maybe<T>) {
     match m {
