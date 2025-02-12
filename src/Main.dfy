@@ -93,7 +93,7 @@ module CS886 {
                   WriteLine("No more turns left!");
                   WriteLine("The secret was: ");
                   printSequence(secret);
-                  WriteLine("\n");
+                  WriteLine("");
                   inGame := false;
                   turnsTaken := 0;
                   secret := [];
