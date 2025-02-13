@@ -9,6 +9,7 @@ module CS886 {
   import opened Common.Data.Maybe
   import opened Common.Data.Result
   import opened Common.Data.Seq
+  import opened Common.Data.Nat
   import opened Commands
   import opened ConsoleIO
 
@@ -35,6 +36,7 @@ module CS886 {
       print prompt, " ";
 
       var resp := ReadLine();
+
       match fromString(resp)
       {
       case Nothing =>
@@ -70,7 +72,6 @@ module CS886 {
                 WriteLine("Invalid command.");
               }
             }
-
           case Guess(guess) =>
             if isNothing(guess) {
               WriteLine("Invalid command.");
@@ -229,15 +230,6 @@ module CS886 {
     match m {
       case Nothing => true
       case Just(_) => false
-    }
-  }
-
-  function extractSequence(m: Maybe<seq<nat>>): seq<nat>
-    requires m.Just?
-  {
-    match m {
-      case Just(value) => value
-      case Nothing => []
     }
   }
 

@@ -261,36 +261,37 @@ module Common
           Just([c] + cs)
           ))
       }
-      //We need to ensure that the string only contains digits so that we can return digits.
-      //@TODO: Need to simplify this method
-      function stringToNat(s: string): Maybe<nat>
-      ensures stringToNat(s).Just? ==> (forall i | 0 <= i < |s| :: '0' <= s[i] <= '9')
+
+      function stringToNat(input:string) : Maybe<nat>
       {
-        if |s| == 0 then
-          Nothing
-        else
-          var digits := digitsFromString(s);
-          match digits {
-            case Nothing => Nothing
-            case Just(ds) =>
-              if |ds| == 0 then
-                Nothing
-              else
-                calcNat(ds, 0)
-          }
+        var natToReturn := 0;
+        var maybeNumArr:= digitsFromString(input);
+        var extractedNumArr := extractSequence(maybeNumArr);
+        calculate(0,extractedNumArr,1)
       }
 
-      function calcNat(ds: seq<nat>, acc: nat): Maybe<nat>
-        requires forall i :: 0 <= i < |ds| ==> ds[i] <= 9  // each element is a digit
-        requires acc <= ((0x7fffffffffffffff - 9) / 10)     // prevent overflow
-        ensures var result := calcNat(ds, acc);
-            result.Just? ==> result.t >= acc        // result is at least acc
-        decreases |ds|
+      function calculate(currentVal:nat, digits : seq<nat>,multiplier:nat) : Maybe<nat>
       {
-        if |ds| == 0 then
-          Just(acc)
-        else
-          calcNat(ds[1..], acc * 10 + ds[0])
+        if currentVal == 0 && |digits| == 0
+         then
+          Nothing
+         else
+          if |digits| == 0
+           then
+            Just(currentVal)
+           else
+            var lastDigit := digits[|digits| - 1];
+            var multiplied := lastDigit * multiplier;
+            var newCurrentVal := currentVal + multiplied;
+            calculate(newCurrentVal, digits[..|digits| - 1], multiplier * 10)
+      }
+      function extractSequence(m: Maybe<seq<nat>>): seq<nat>
+      requires m.Just?
+      {
+        match m {
+          case Just(value) => value
+          case Nothing => []
+        }
       }
     }
   }
