@@ -1,4 +1,5 @@
 include "Common.dfy"
+include "Helpers.dfy"
 
 module Commands {
 
@@ -6,6 +7,7 @@ module Commands {
   import opened Common.Data.Seq
   import opened Common.Data.String
   import opened Common.Data.Nat
+  import opened Helpers
 
   datatype CMD
     = Quit

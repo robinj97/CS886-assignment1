@@ -22,6 +22,37 @@ module Helpers {
       case Nothing => 0
     }
   }
+  function stringToNat(input:string) : Maybe<nat>
+  {
+    var natToReturn := 0;
+    var maybeNumArr:= digitsFromString(input);
+    var extractedNumArr := extractSequence(maybeNumArr);
+    calculate(0,extractedNumArr,1)
+  }
+
+  function calculate(currentVal:nat, digits : seq<nat>,multiplier:nat) : Maybe<nat>
+  {
+    if currentVal == 0 && |digits| == 0
+    then
+      Nothing
+    else
+      if |digits| == 0
+      then
+        Just(currentVal)
+      else
+        var lastDigit := digits[|digits| - 1];
+        var multiplied := lastDigit * multiplier;
+        var newCurrentVal := currentVal + multiplied;
+        calculate(newCurrentVal, digits[..|digits| - 1], multiplier * 10)
+  }
+  function extractSequence(m: Maybe<seq<nat>>): seq<nat>
+  requires m.Just?
+  {
+    match m {
+      case Just(value) => value
+      case Nothing => []
+    }
+  }
 
   method printSequence(sequence: seq<nat>)
     requires |sequence| > 0
