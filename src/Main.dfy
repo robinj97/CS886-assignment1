@@ -64,9 +64,9 @@ module CS886 {
             } else {
               if turns.Just? && sequence.Just? {
                 var currentIngame := gameState.getIngame();
-                var started := gameState.startGameProcess(turns, sequence, currentIngame);
-                if started {
-                  gameState.setPlayingGameState(started,sequence,turns);
+                var validateCanStartGame := gameState.startGameProcess(turns, sequence, currentIngame);
+                if validateCanStartGame {
+                  gameState.setPlayingGameState(true,sequence,turns);
                 }
               } else {
                 WriteLine("Invalid command.");
